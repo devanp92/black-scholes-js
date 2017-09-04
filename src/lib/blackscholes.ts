@@ -302,8 +302,8 @@ export class BlackScholes implements IBlackScholes {
      * Get the last official price from IEX API
      */
     async getCurrentPrice(symbol: string) {
-        const res = await request('https://api.iextrading.com/1.0/')
-            .get(`tops?symbols=${symbol}`);
+        const res = await request('https://api.iextrading.com/1.0//stock/')
+            .get(`${symbol}/quote`);
 
         const data = res.body;
         if (data === null || data === undefined ||
