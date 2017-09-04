@@ -45,7 +45,7 @@ export class BlackScholes implements IBlackScholes {
         this.option = new Option();
         this.option.expiryDate = expiryDate;
         this.option.strikePrice = strikePrice;
-        this.option.type = callPut.toLocaleLowerCase() === 'Call' ?
+        this.option.type = callPut.toLocaleLowerCase() === 'call' ?
             OptionType.Call :
             OptionType.Put;
     }
@@ -55,7 +55,7 @@ export class BlackScholes implements IBlackScholes {
      * @param riskFree
      */
     setRiskFree(riskFree? : number) {
-        if (riskFree === null || riskFree === undefined) {
+        if (isUndefinedOrNull(this.riskFree)) {
             this.getRiskRate()
                 .then(riskRate => this.riskFree = riskRate);
         } else {
@@ -87,7 +87,7 @@ export class BlackScholes implements IBlackScholes {
      * (velocity)
      */
     delta(): number | null {
-        if (this.d1 === null) {
+        if (isUndefinedOrNull(this.d1)) {
             return null;
         }
 
@@ -101,7 +101,7 @@ export class BlackScholes implements IBlackScholes {
      * (acceleration)
      */
     gamma(): number | null {
-        if (this.normPDFD1 === null) {
+        if (isUndefinedOrNull(this.normPDFD1)) {
             return null;
         }
 
@@ -119,15 +119,15 @@ export class BlackScholes implements IBlackScholes {
      * Theta of value -10 means the option is losing $10 in time value each day.
      */
     theta(): number | null {
-        if (this.d2 === null) {
+        if (isUndefinedOrNull(this.d2)) {
             return null;
         }
 
-        if (this.d1 === null) {
+        if (isUndefinedOrNull(this.d1)) {
             return null;
         }
 
-        if (this.normPDFD1 === null) {
+        if (isUndefinedOrNull(this.normPDFD1)) {
             return null;
         }
 
@@ -155,7 +155,7 @@ export class BlackScholes implements IBlackScholes {
      * How much a change in 1% of interest rates impacts the option's price
      */
     rho(): number | null {
-        if (this.d2 === null) {
+        if (isUndefinedOrNull(this.d2)) {
             return null;
         }
 
@@ -179,11 +179,11 @@ export class BlackScholes implements IBlackScholes {
      * How much a change in 1% of the underlying assets impacts the option's price
      */
     vega(): number | null {
-        if (this.d1 === null) {
+        if (isUndefinedOrNull(this.d1)) {
             return null;
         }
 
-        if (this.d2 === null) {
+        if (isUndefinedOrNull(this.d2)) {
             return null;
         }
 
@@ -197,11 +197,11 @@ export class BlackScholes implements IBlackScholes {
     }
 
     value(): number | null {
-        if (this.d1 === null) {
+        if (isUndefinedOrNull(this.d1)) {
             return null;
         }
 
-        if (this.d2 === null) {
+        if (isUndefinedOrNull(this.d2)) {
             return null;
         }
 
@@ -243,7 +243,7 @@ export class BlackScholes implements IBlackScholes {
     get d2(): number | null {
         const d1 = this.d1;
 
-        if (d1 === null) {
+        if (isUndefinedOrNull(this.d1)) {
             return null;
         }
 
@@ -251,7 +251,7 @@ export class BlackScholes implements IBlackScholes {
     }
 
     get normPDFD1(): number | null {
-        if (this.d1 === null) {
+        if (isUndefinedOrNull(this.d1)) {
             return null;
         }
 
@@ -263,7 +263,7 @@ export class BlackScholes implements IBlackScholes {
      * I access this data via Quandl
      */
     async getRiskRate() {
-        if (this.option === null || this.option === undefined) {
+        if (isUndefinedOrNull(this.option)) {
             throw new Error('Must initialize option before initializing risk free rate');
         }
         const res = await request('https://www.quandl.com')
@@ -301,17 +301,24 @@ export class BlackScholes implements IBlackScholes {
     /**
      * Get the last official price from IEX API
      */
-    async getCurrentPrice(symbol: string) {
+    async getCurrentPrice(symbol: string): Promise<number> {
         const res = await request('https://api.iextrading.com/1.0//stock/')
             .get(`${symbol}/quote`);
 
         const data = res.body;
-        if (data === null || data === undefined ||
-            data[0] === null || data[0] === undefined) {
+        if (isUndefinedOrNull(data)) {
             throw new Error('Cannot find the stock price.');
         }
 
-        return data[0].lastSalePrice;
+        if (!isUndefinedOrNull(data.latestPrice)) {
+            return data.latestPrice;
+        }
+
+        if (!isUndefinedOrNull(data.delayedPrice)) {
+            return data.delayedPrice;
+        }
+
+        return 0;
     }
 }
 
@@ -320,4 +327,8 @@ function _toFixed(x: number, numDigits: number) {
     const roundedToNearestNth = Math.round(x * powerOfTen) / powerOfTen;
 
     return parseFloat(roundedToNearestNth.toFixed(numDigits));
+}
+
+function isUndefinedOrNull(obj: any): boolean {
+    return obj === undefined || obj === null;
 }

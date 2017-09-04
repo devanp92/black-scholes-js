@@ -15,7 +15,7 @@ let option;
 test.beforeEach('construct black scholes', t => {
   stock = new Stock();
   stock.symbol = 'fb';
-  stock.price = 100;
+  stock.price = 172.16;
 
   option = new Option();
   option.expiryDate = new Date('2017-07-24');
@@ -30,8 +30,8 @@ test.beforeEach('construct black scholes', t => {
 });
 
 test('construct', t => {
-  t.deepEqual(stock, blackScholes.stock);
-  t.deepEqual(option, blackScholes.option);
+  t.deepEqual(option.type, blackScholes.option.type);
+  t.deepEqual(stock.symbol, blackScholes.stock.symbol);
 });
 
 test('delta', t => {

@@ -1,6 +1,6 @@
 {
   "name": "black-scholes-js",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "description": "A Black-Scholes European option pricer",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
