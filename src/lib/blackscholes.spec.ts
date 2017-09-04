@@ -1,6 +1,6 @@
 import {
   test
-} from 'ava'
+} from 'ava';
 import {
   Stock,
   BlackScholes,
@@ -14,7 +14,7 @@ let option;
 
 test.beforeEach('construct black scholes', t => {
   stock = new Stock();
-  stock.symbol = "fb";
+  stock.symbol = 'fb';
   stock.price = 100;
 
   option = new Option();
@@ -23,7 +23,10 @@ test.beforeEach('construct black scholes', t => {
   option.strikePrice = 100;
   option.type = OptionType.Call;
 
-  blackScholes = new BlackScholes(stock, option, .1, .06);
+  blackScholes = new BlackScholes('fb');
+  blackScholes.setDeviation(.1);
+  blackScholes.setRiskFree(.06);
+  blackScholes.setOption(option.expiryDate, option.strikePrice, option.type);
 });
 
 test('construct', t => {

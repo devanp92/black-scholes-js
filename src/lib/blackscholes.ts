@@ -26,21 +26,60 @@ export class BlackScholes implements IBlackScholes {
     riskFree: number;
     deviation: number;
 
-    constructor(stock: Stock, option: Option, deviation: number, riskFree: number) {
+    /**
+     * Initialize stock with symbol
+     * @param symbol
+     */
+    constructor(symbol: string) {
+        // Set stock values
+        this.setStock(symbol);
+    }
+
+    /**
+     * Set option
+     * @param expiryDate
+     * @param strikePrice
+     * @param callPut
+     */
+    setOption(expiryDate: Date, strikePrice: number, callPut: string) {
+        this.option = new Option();
+        this.option.expiryDate = expiryDate;
+        this.option.strikePrice = strikePrice;
+        this.option.type = callPut.toLocaleLowerCase() === 'Call' ?
+            OptionType.Call :
+            OptionType.Put;
+    }
+
+    /**
+     * Set risk free rate
+     * @param riskFree
+     */
+    setRiskFree(riskFree? : number) {
+        if (riskFree === null || riskFree === undefined) {
+            this.getRiskRate()
+                .then(riskRate => this.riskFree = riskRate);
+        } else {
+            this.riskFree = riskFree;
+        }
+    }
+
+    /**
+     * Set deviation
+     * @param deviation
+     */
+    setDeviation(deviation: number) {
         this.deviation = deviation;
-        this.riskFree = riskFree;
-        this.option = option;
+    }
 
-        if (stock === null || stock === undefined) {
-            throw new Error('Parameter stock is undefined');
-        }
-
-        if (stock.price === null || stock.price === undefined) {
-            this.getCurrentPrice(stock.symbol)
-                .then(price => stock.price = price);
-        }
-
-        this.stock = stock;
+    /**
+     * Set stock symbol
+     * @param symbol
+     */
+    private setStock(symbol: string) {
+        this.stock = new Stock();
+        this.stock.symbol = symbol;
+        this.getCurrentPrice(symbol)
+            .then(price => this.stock.price = price);
     }
 
     /**
@@ -224,6 +263,9 @@ export class BlackScholes implements IBlackScholes {
      * I access this data via Quandl
      */
     async getRiskRate() {
+        if (this.option === null || this.option === undefined) {
+            throw new Error('Must initialize option before initializing risk free rate');
+        }
         const res = await request('https://www.quandl.com')
             .get(`/api/v3/datasets/USTREASURY/BILLRATES.json?api_key=${Config.quandlAPIKey}`);
 
